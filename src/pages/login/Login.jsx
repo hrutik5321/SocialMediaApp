@@ -1,5 +1,5 @@
 import { useState } from "react";
-import {} from "react-router-dom";
+import { Redirect } from "react-router-dom";
 import { authenticate, isAutheticated, signin } from "../../backend/auth";
 import "./login.css";
 
@@ -38,18 +38,15 @@ export default function Login() {
       .catch(console.log("signin request failed"));
   };
 
-  // const performRedirect = () => {
-  //   if (didRedirect) {
-  //     if (user && user.role === 1) {
-  //       return <Redirect to="/admin/dashboard" />;
-  //     } else {
-  //       return <Redirect to="/user/dashboard" />;
-  //     }
-  //   }
-  //   if (isAutheticated()) {
-  //     return <Redirect to="/" />;
-  //   }
-  // };
+  const performRedirect = () => {
+    if (didRedirect) {
+      if (user && user.role === 1) {
+        return <Redirect to="/admin/dashboard" />;
+      } else {
+        return <Redirect to="/" />;
+      }
+    }
+  };
 
   const loadingMessage = () => {
     return (
@@ -88,6 +85,7 @@ export default function Login() {
         <div className="loginRight">
           {errorMessage()}
           {loadingMessage()}
+          {performRedirect()}
           <div className="loginBox">
             <input
               placeholder="Email"

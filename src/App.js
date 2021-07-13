@@ -3,13 +3,14 @@ import Login from "./pages/login/Login";
 import Profile from "./pages/profile/Profile";
 import Register from "./pages/register/Register";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import Messenger from "./pages/Messenger/Messenger";
 
 function App() {
   return (
     <Router>
       <Switch>
         <Route exact path="/">
-          <Register />
+          <Home />
         </Route>
         <Route exact path="/login">
           <Login />
@@ -19,6 +20,9 @@ function App() {
         </Route>
         <Route exact path="/register">
           <Register />
+        </Route>
+        <Route exact path="/messenger">
+          <Messenger />
         </Route>
       </Switch>
     </Router>
