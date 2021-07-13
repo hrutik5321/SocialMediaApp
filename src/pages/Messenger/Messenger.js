@@ -1,6 +1,6 @@
 import "./Messenger.css";
 
-import React from "react";
+import React, { useRef } from "react";
 import Topbar from "../../components/topbar/Topbar";
 import Conversation from "../../components/conversation/Conversation";
 import Message from "../../components/Message/Message";
@@ -12,15 +12,19 @@ import {
   getMessage,
   sendMessage,
 } from "../../backend/messanger";
-
+import { io } from "socket.io-client";
 import { useState } from "react";
-import { useRef } from "react";
 
 function Messenger() {
   const [conversations, setConversations] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    setSocket(io("ws://localhost:8900"));
+  }, []);
 
   const { token, user } = isAutheticated();
   const getConversations = async () => {
@@ -60,6 +64,12 @@ function Messenger() {
   useEffect(() => {
     getMessages();
   }, [currentChat, messages]);
+
+  var scrollRef = useRef();
+
+  useEffect(() => {
+    scrollRef?.current?.scrollIntroView({ behavior: "smooth" });
+  }, [messages]);
   return (
     <>
       <Topbar />
