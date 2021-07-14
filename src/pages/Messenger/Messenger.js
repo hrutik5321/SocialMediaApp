@@ -20,13 +20,34 @@ function Messenger() {
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState(null);
-
+  const [arrivalMessage, setArrivalMessage] = useState(null);
+  const socket = useRef();
+  const { token, user } = isAutheticated();
+  var scrollRef = useRef();
   useEffect(() => {
-    setSocket(io("ws://localhost:8900"));
+    socket.current = io("ws://localhost:8900");
+    socket.current.on("getMessage", (data) => {
+      setArrivalMessage({
+        sender: data.senderId,
+        text: data.text,
+        createdAt: Date.now(),
+      });
+    });
   }, []);
 
-  const { token, user } = isAutheticated();
+  useEffect(() => {
+    arrivalMessage &&
+      currentChat?.members.includes(arrivalMessage.sender) &&
+      setMessages((prev) => [...prev, arrivalMessage]);
+  }, [arrivalMessage, currentChat]);
+
+  useEffect(() => {
+    socket.current.emit("addUser", user._id);
+    socket.current.on("getUsers", (users) => {
+      console.log(users);
+    });
+  }, [user]);
+
   const getConversations = async () => {
     if (token) {
       try {
@@ -44,9 +65,18 @@ function Messenger() {
       sender: user._id,
       text: newMessage,
     };
+    const receiverId = currentChat.members.find(
+      (member) => member !== user._id
+    );
     const { conversationId, text, sender } = message;
     sendMessage({ sender, text, conversationId }).then(() => setNewMessage(""));
+    socket.current.emit("sendMessage", {
+      senderId: user._id,
+      receiverId,
+      text: newMessage,
+    });
   };
+
   const getMessages = async () => {
     try {
       if (currentChat) {
@@ -65,10 +95,8 @@ function Messenger() {
     getMessages();
   }, [currentChat, messages]);
 
-  var scrollRef = useRef();
-
   useEffect(() => {
-    scrollRef?.current?.scrollIntroView({ behavior: "smooth" });
+    return scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
   return (
     <>
@@ -99,7 +127,9 @@ function Messenger() {
               <>
                 <div className="chatBoxTop">
                   {messages.map((m) => (
-                    <Message message={m} own={m.sender === user._id} />
+                    <div ref={scrollRef}>
+                      <Message message={m} own={m.sender === user._id} />
+                    </div>
                   ))}
                 </div>
                 <div className="chatBoxBottom">
